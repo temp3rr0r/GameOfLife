@@ -192,7 +192,8 @@ void UniverseModifier::advance_universe(std::vector<bool>& grid, size_t size_x, 
 
 void UniverseModifier::advance_universe_tbb(tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
 	size_t universe_size = grid.size();
-
+	
+	// TODO: add parallel_for
 	for (size_t x = 0; x < size_x; ++x) {
 		for (size_t y = 0; y < size_y; ++y) {
 			grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
