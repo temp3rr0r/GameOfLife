@@ -8,6 +8,7 @@
 #include "tbb/tick_count.h"
 #include "tbb/task_scheduler_init.h"
 #include "UniverseModifier.h"
+#include <cassert>
 
 using namespace tbb;
 using namespace std;
@@ -16,8 +17,9 @@ void simulate_serial(vector<bool>& universe, size_t universe_size_x, size_t univ
 
 	UniverseModifier universe_modifier;
 
-	for (size_t i = 0; i < total_time_steps; ++i)
-		universe_modifier.advance_universe(universe, universe_size_x, universe_size_y);	
+	for (size_t i = 0; i < total_time_steps; ++i) {
+		universe_modifier.advance_universe(universe, universe_size_x, universe_size_y);
+	}
 }
 
 int main() {
@@ -36,7 +38,7 @@ int main() {
 	universe_size_y = 10;
 	thread_count = 4;
 	total_time_steps = 10;
-	default_live_cell_count = 10;
+	default_live_cell_count = 30;
 
 	task_scheduler_init init(thread_count); // Set the number of threads
 
@@ -52,31 +54,44 @@ int main() {
 		tick_count before, after; // Execution timers
 
 		// Initialized grid
-		vector<bool> universe_grid;
-		universe_grid.resize(universe_size_x * universe_size_y);
-
+		vector<bool> init_universe_grid;
+		init_universe_grid.resize(universe_size_x * universe_size_y);
+		
 		// Put random live cells
 		UniverseModifier grid_modifier;
-		grid_modifier.allocate_random_live_cells(default_live_cell_count, universe_grid, universe_size_x, universe_size_y);
+		grid_modifier.allocate_random_live_cells(default_live_cell_count, init_universe_grid, universe_size_x, universe_size_y);
+
+		// Show Init universe
+		cout << "Init Universe" << endl;
+		grid_modifier.debug_show_universe(init_universe_grid, universe_size_x, universe_size_y);
+
+		// Copy the grids
+		vector<bool> universe_serial(init_universe_grid);
+		vector<bool> universe_tbb(init_universe_grid);
 
 		// Serial execution
 		before = tick_count::now();
-		simulate_serial(universe_grid, universe_size_x, universe_size_y, total_time_steps); // Advance Game Of Life serially
+		simulate_serial(universe_serial, universe_size_x, universe_size_y, total_time_steps); // Advance Game Of Life serially
 		after = tick_count::now();
 		cout << endl << "Serial execution: " << 1000 * (after - before).seconds() << " ms" << endl;
 
 		// Thread Building Blocks		
 		before = tick_count::now();
-		simulate_serial(universe_grid, universe_size_x, universe_size_y, total_time_steps); // Advance Game Of Life serially with TBB
+		simulate_serial(universe_tbb, universe_size_x, universe_size_y, total_time_steps); // Advance Game Of Life with TBB
 		after = tick_count::now();
 		cout << endl << "Thread Building Blocks execution: " << 1000 * (after - before).seconds() << " ms" << endl;
 
 		// Assert
+		assert(UniverseModifier::are_equal(universe_serial, universe_tbb));
 
 		// Show universe
-		grid_modifier.debug_show_universe(universe_grid, universe_size_x, universe_size_y);
+		cout << "Final Universe serial" << endl;
+		grid_modifier.debug_show_universe(universe_serial, universe_size_x, universe_size_y);
 
-//		system("pause");
+		cout << "Final Universe TBB" << endl;
+		grid_modifier.debug_show_universe(universe_tbb, universe_size_x, universe_size_y);
+
+		system("pause");
 	}
 
     return 0;
