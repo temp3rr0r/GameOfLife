@@ -45,7 +45,7 @@ std::vector<bool> UniverseModifier::get_neighborhood(size_t input_cell_x, size_t
 	size_t universe_size = universe_.size();
 
 	// CENTER row
-	returning_neighbourhood[static_cast<int32_t>(neighborhood_size / 2)] = universe_[get_vector_index(input_cell_x, input_cell_y, universe_size)];
+	returning_neighbourhood[(neighborhood_size / 2)] = universe_[get_vector_index(input_cell_x, input_cell_y, universe_size)];
 	if (input_cell_y > 0)
 		returning_neighbourhood[get_vector_index(1, 0, neighborhood_side_size)] = universe_[get_vector_index(input_cell_x, input_cell_y - 1, universe_size)];
 	if (input_cell_y < size_y - 1)
@@ -75,9 +75,9 @@ std::vector<bool> UniverseModifier::get_neighborhood(size_t input_cell_x, size_t
 
 bool UniverseModifier::get_new_state(const std::vector<bool>& input_current_neighbourhood) {
 	
-	bool current_state = input_current_neighbourhood[static_cast<int32_t>(input_current_neighbourhood.size() / 2)];
+	bool current_state = input_current_neighbourhood[(input_current_neighbourhood.size() / 2)];
 	bool returning_state = DEAD;
-	size_t live_neighbours_count = get_count(input_current_neighbourhood, true);
+	size_t live_neighbours_count = get_count(input_current_neighbourhood, ALIVE);
 
 	//Any live cell with fewer than two live neighbours dies, as if caused by under - population.
 	//Any live cell with two or three live neighbours lives on to the next generation.

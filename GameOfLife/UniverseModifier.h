@@ -12,7 +12,6 @@ public:
 	static size_t get_count(const std::vector<bool>& inputArray, bool element);
 	std::vector<bool> get_neighborhood(size_t input_cell_x, size_t input_cell_y, size_t neighborhood_size, const std::vector<bool>& universe_, size_t size_x, size_t size_y) const;
 	static bool get_new_state(const std::vector<bool>& input_current_neighbourhood);
-	static std::vector<bool> get_neighborhood(size_t position, size_t neighborhood_size, const std::vector<bool>& grid, size_t size_x, size_t size_y);
 private:
 	std::random_device random_device_;
 };
