@@ -5,6 +5,7 @@
 class UniverseModifier
 {
 public:
+	UniverseModifier() {};
 	void allocate_random_live_cells(size_t live_cells_count, std::vector<bool>& input_universe, size_t size_x, size_t size_y);
 	static void advance_universe(std::vector<bool>& universe, size_t size_x, size_t size_y);
 	static void debug_show_universe(const std::vector<bool>& universe, size_t size_x, size_t size_y);

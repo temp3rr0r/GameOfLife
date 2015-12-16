@@ -5,7 +5,7 @@
 void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, std::vector<bool>& grid, size_t size_x, size_t size_y) {
 	if (live_cells_count > 0) {
 		std::mt19937 mersenne_twister_engine(random_device_());
-		std::uniform_int_distribution<> cell_distribution(0, static_cast<int>(size_x * size_y));
+		std::uniform_int_distribution<> cell_distribution(0, static_cast<int>((size_x * size_y) - 1));
 
 		for (size_t i = 0; i < live_cells_count; ++i)
 			grid[cell_distribution(mersenne_twister_engine)] = true;

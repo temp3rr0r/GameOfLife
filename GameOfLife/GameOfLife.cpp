@@ -34,11 +34,11 @@ int main() {
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_x = 10;
-	universe_size_y = 10;
-	thread_count = 4;
-	total_time_steps = 10;
-	default_live_cell_count = 30;
+	universe_size_x = 7;
+	universe_size_y = 3;
+	thread_count = 3;
+	total_time_steps = 2;
+	default_live_cell_count = 13;
 
 	task_scheduler_init init(thread_count); // Set the number of threads
 
