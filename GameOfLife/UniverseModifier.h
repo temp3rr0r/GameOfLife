@@ -9,6 +9,7 @@ public:
 	UniverseModifier() {};
 	void allocate_random_live_cells(size_t live_cells_count, std::vector<bool>& input_universe, size_t size_x, size_t size_y);
 	static void advance_universe(std::vector<bool>& universe, size_t size_x, size_t size_y);
+	void advance_universe_cell_tbb(size_t x, size_t y, tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const;
 	void advance_universe_tbb(tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const;
 	static tbb::concurrent_vector<bool> to_concurrent_vector(const std::vector<bool>& input_grid);
 	static std::vector<bool> to_vector(const tbb::concurrent_vector<bool>& input_grid);

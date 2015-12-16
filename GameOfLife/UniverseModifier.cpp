@@ -3,6 +3,9 @@
 #include "Settings.h"
 #include <tbb/cache_aligned_allocator.h>
 #include <tbb/concurrent_vector.h>
+#include <tbb/tbb.h>
+
+using namespace tbb;
 
 void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, std::vector<bool>& grid, size_t size_x, size_t size_y) {
 	if (live_cells_count > 0) {
@@ -190,15 +193,40 @@ void UniverseModifier::advance_universe(std::vector<bool>& grid, size_t size_x, 
 	}
 }
 
+void UniverseModifier::advance_universe_cell_tbb(size_t x, size_t y, tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
+	grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
+}
+
+
 void UniverseModifier::advance_universe_tbb(tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
 	size_t universe_size = grid.size();
 	
-	// TODO: add parallel_for
-	for (size_t x = 0; x < size_x; ++x) {
-		for (size_t y = 0; y < size_y; ++y) {
-			grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
+	// TODO: add lamba Parallel_for
+//	for (size_t x = 0; x < size_x; ++x) {
+//		for (size_t y = 0; y < size_y; ++y) {
+//			grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
+//		}
+//	}
+
+//	for (size_t x = 0; x < size_x; ++x) {
+//		for (size_t y = 0; y < size_y; ++y) {
+//			advance_universe_cell_tbb(x, y, grid, size_x, size_y);
+//		}
+//	}
+
+	parallel_for(blocked_range2d<size_t, size_t>(0, size_x, 0, size_y),
+		[&](const blocked_range2d<size_t, size_t>& r) {
+
+			size_t StartX = r.rows().begin();
+			size_t StopX = r.rows().end();
+			size_t StartY = r.cols().begin();
+			size_t StopY = r.cols().end();
+
+			for (size_t x = StartX; x < StopX; ++x)
+				for (size_t y = StartY; y < StopY; ++y)
+					advance_universe_cell_tbb(x, y, grid, size_x, size_y);
 		}
-	}
+	);
 }
 
 tbb::concurrent_vector<bool> UniverseModifier::to_concurrent_vector(const std::vector<bool>& input_grid) {

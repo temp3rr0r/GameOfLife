@@ -99,6 +99,10 @@ int main() {
 
 		// Show universe
 		if (VERBOSE) {
+
+			cout << "Final Universe Serial" << endl;
+			grid_modifier.debug_show_universe(universe_serial, universe_size_x, universe_size_y);
+
 			cout << "Final Universe TBB" << endl;
 			grid_modifier.debug_show_universe(UniverseModifier::to_vector(universe_tbb), universe_size_x, universe_size_y);
 		}

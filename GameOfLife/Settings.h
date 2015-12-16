@@ -2,11 +2,6 @@
 
 static const bool VERBOSE = false;
 
-static const double MAX_LONGITUDE = 180.0;
-static const double MAX_LATITUDE = 90.0;
-static const double MIN_LONGITUDE = -180.0;
-static const double MIN_LATITUDE = -90.0;
-
 static const int DEFAULT_NUMBER_OF_THREADS = 4;
 static const int UNIVERSE_X_COUNT = 10;
 static const int UNIVERSE_Y_COUNT = 10;
