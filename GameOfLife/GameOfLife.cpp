@@ -1,6 +1,7 @@
 // GameOfLife.cpp : Defines the entry point for the console application.
 //
 
+#include "lodepng.h"
 #include "Settings.h"
 #include <vector>
 #include <iostream>
@@ -38,18 +39,20 @@ int main() {
 	size_t universe_size_x = UNIVERSE_X_COUNT;
 	size_t universe_size_y = UNIVERSE_Y_COUNT;
 	size_t total_time_steps = DEFAULT_TOTAL_TIME_STEPS;
-	size_t default_live_cell_count = DEFAULT_INIT_LIVE_CELLS;
-	size_t default_neighborhood_size = DEFAULT_NEIGHBORHOOD_SIZE;
+	size_t live_cells_count = DEFAULT_INIT_LIVE_CELLS;
+	double live_cells_proportion = DEFAULT_INIT_LIVE_CELLS_PROPORTION;
+	size_t neighborhood_size = DEFAULT_NEIGHBORHOOD_SIZE;
 
 	// Set TBB thread count system automatic (usually as many as the system's cores)
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_x = 7;
-	universe_size_y = 3;
+	universe_size_x = 800;
+	universe_size_y = 800;
 	thread_count = 4;
-	total_time_steps = 2;
-	default_live_cell_count = 13;
+	total_time_steps = 3;
+	live_cells_proportion = 0.1;
+	live_cells_count = static_cast<size_t>(universe_size_x * universe_size_y * live_cells_proportion);
 
 	task_scheduler_init init(thread_count); // Set the number of threads
 
@@ -70,7 +73,7 @@ int main() {
 		
 		// Put random live cells
 		UniverseModifier grid_modifier;
-		grid_modifier.allocate_random_live_cells(default_live_cell_count, init_universe_grid, universe_size_x, universe_size_y);
+		grid_modifier.allocate_random_live_cells(live_cells_count, init_universe_grid, universe_size_x, universe_size_y);
 
 		// Show Init universe
 		if (VERBOSE) {
@@ -105,6 +108,34 @@ int main() {
 
 			cout << "Final Universe TBB" << endl;
 			grid_modifier.debug_show_universe(UniverseModifier::to_vector(universe_tbb), universe_size_x, universe_size_y);
+		}
+
+		if (SAVE_PNG) {
+
+			// Write png to disk
+			const char* filename = "universe.png";
+
+			//generate some image
+			unsigned width = universe_size_y, height = universe_size_y;
+			std::vector<unsigned char> image;
+			image.resize(width * height * 4);
+			for (unsigned y = 0; y < height; y++)
+				for (unsigned x = 0; x < width; x++) {
+//					image[4 * width * y + 4 * x + 0] = 255 * !(x & y);
+//					image[4 * width * y + 4 * x + 1] = x ^ y;
+//					image[4 * width * y + 4 * x + 2] = x | y;
+					unsigned val = 0;
+
+					if (universe_serial[grid_modifier.get_vector_index(x, y, universe_size_y)] == ALIVE)
+						val = 255;
+
+					image[4 * width * y + 4 * x + 0] = val;
+					image[4 * width * y + 4 * x + 1] = 0;
+					image[4 * width * y + 4 * x + 2] = 0;
+					image[4 * width * y + 4 * x + 3] = 255;
+				}
+
+			lodepng::encode(filename, image, width, height);
 		}
 
 		system("pause");

@@ -184,8 +184,7 @@ bool UniverseModifier::are_equal(const std::vector<bool>& first_universe, const 
 }
 
 void UniverseModifier::advance_universe(std::vector<bool>& grid, size_t size_x, size_t size_y) {
-	size_t universe_size = grid.size();
-
+	
 	for (size_t x = 0; x < size_x; ++x) {
 		for (size_t y = 0; y < size_y; ++y) {
 			grid[get_vector_index(x, y, size_y)] = get_new_state(get_neighborhood(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
@@ -199,21 +198,7 @@ void UniverseModifier::advance_universe_cell_tbb(size_t x, size_t y, tbb::concur
 
 
 void UniverseModifier::advance_universe_tbb(tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
-	size_t universe_size = grid.size();
 	
-	// TODO: add lamba Parallel_for
-//	for (size_t x = 0; x < size_x; ++x) {
-//		for (size_t y = 0; y < size_y; ++y) {
-//			grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
-//		}
-//	}
-
-//	for (size_t x = 0; x < size_x; ++x) {
-//		for (size_t y = 0; y < size_y; ++y) {
-//			advance_universe_cell_tbb(x, y, grid, size_x, size_y);
-//		}
-//	}
-
 	parallel_for(blocked_range2d<size_t, size_t>(0, size_x, 0, size_y),
 		[&](const blocked_range2d<size_t, size_t>& r) {
 

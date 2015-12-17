@@ -1,12 +1,16 @@
 #pragma once
 
 static const bool VERBOSE = false;
+static const bool SAVE_PNG = true;
 
 static const int DEFAULT_NUMBER_OF_THREADS = 4;
+
 static const int UNIVERSE_X_COUNT = 10;
 static const int UNIVERSE_Y_COUNT = 10;
 static const int DEFAULT_TOTAL_TIME_STEPS = 10;
+
 static const int DEFAULT_INIT_LIVE_CELLS = 10;
+static const double DEFAULT_INIT_LIVE_CELLS_PROPORTION = 0.8;
 static const int DEFAULT_NEIGHBORHOOD_SIZE = 9;
 
 //Any live cell with fewer than two live neighbours dies, as if caused by under - population.

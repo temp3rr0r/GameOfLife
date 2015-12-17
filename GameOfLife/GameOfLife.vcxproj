@@ -149,9 +149,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameOfLife.cpp" />
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="UniverseModifier.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Makefile" />
     <ClInclude Include="UniverseModifier.h" />
     <ClInclude Include="Settings.h" />
