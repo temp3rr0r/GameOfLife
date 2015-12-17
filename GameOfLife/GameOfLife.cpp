@@ -50,7 +50,7 @@ void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, siz
 
 					uint8_t aliveCells = count_alive_cells_tbb(x0, x1, x2, y0, y1, y2, universe);
 					new_universe[y1 + x1] =
-						aliveCells == REPRODUCTION_COUNT || (aliveCells == UNDERPOPULATION_COUNT && universe[x1 + y1]) ? true : false;
+						aliveCells == REPRODUCTION_COUNT || (aliveCells == UNDERPOPULATION_COUNT && universe[x1 + y1]) ? ALIVE : DEAD;
 				}
 			}
 		);
@@ -91,36 +91,6 @@ void simulate_serial(vector<bool>& universe, size_t universe_size_x, size_t univ
 			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
 
 			universe_modifier.universe_to_png(universe, universe_size_x, universe_size_y, file_name.c_str());
-		}
-	}
-}
-
-void simulate_serial_old(vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
-
-	UniverseModifier universe_modifier;
-
-	for (size_t i = 0; i < total_time_steps; ++i) {
-		universe_modifier.advance_universe(universe, universe_size_x, universe_size_y);
-		if (SAVE_ALL_PNG_STEPS) {
-
-			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
-
-			universe_modifier.universe_to_png(universe, universe_size_x, universe_size_y, file_name.c_str());
-		}
-	}
-}
-
-void simulate_tbb_old(concurrent_vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
-
-	UniverseModifier universe_modifier;
-
-	for (size_t i = 0; i < total_time_steps; ++i) {
-		universe_modifier.advance_universe_tbb(universe, universe_size_x, universe_size_y);
-		if (SAVE_ALL_PNG_STEPS) {
-
-			string file_name = "universe_tbb_timestep_" + to_string(i) +".png";
-
-			universe_modifier.universe_to_png(universe_modifier.to_vector(universe), universe_size_x, universe_size_y, file_name.c_str());
 		}
 	}
 }

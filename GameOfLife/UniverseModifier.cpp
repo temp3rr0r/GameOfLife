@@ -15,7 +15,7 @@ void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, vecto
 		uniform_int_distribution<> cell_distribution(0, static_cast<int>((size_x * size_y) - 1));
 
 		for (size_t i = 0; i < live_cells_count; ++i)
-			grid[cell_distribution(mersenne_twister_engine)] = true;
+			grid[cell_distribution(mersenne_twister_engine)] = ALIVE;
 	}
 }
 
@@ -65,7 +65,6 @@ size_t UniverseModifier::get_count(const vector<bool>& input_vector, bool state)
 	}
 	return returning_count;
 }
-
 
 size_t UniverseModifier::get_count_tbb(const concurrent_vector<bool>& input_vector, bool state) {
 	size_t returning_count = 0;
@@ -198,12 +197,15 @@ bool UniverseModifier::are_equal(const vector<bool>& first_universe, const vecto
 	bool are_equal = false;
 
 	if (first_universe.size() > 0 && first_universe.size() == second_universe.size()) {
-		for (size_t i = 0; i < first_universe.size(); ++i) {
-			if (first_universe[i] != second_universe[i])
-				break;
 		are_equal = true;
+		for (size_t i = 0; i < first_universe.size(); ++i) {
+			if (first_universe[i] != second_universe[i]) {
+				are_equal = false;
+				break;
+			}
+		}
 	}
-}
+
 	return are_equal;
 }
 
