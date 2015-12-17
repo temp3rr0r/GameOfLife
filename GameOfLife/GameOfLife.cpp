@@ -47,11 +47,11 @@ int main() {
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_x = 800;
-	universe_size_y = 800;
+	universe_size_y = 1920;
+	universe_size_x = 1080;
 	thread_count = 4;
-	total_time_steps = 3;
-	live_cells_proportion = 0.1;
+	total_time_steps = 10;
+	live_cells_proportion = 0.6;
 	live_cells_count = static_cast<size_t>(universe_size_x * universe_size_y * live_cells_proportion);
 
 	task_scheduler_init init(thread_count); // Set the number of threads
@@ -116,24 +116,22 @@ int main() {
 			const char* filename = "universe.png";
 
 			//generate some image
-			unsigned width = universe_size_y, height = universe_size_y;
+			unsigned width = universe_size_y;
+			unsigned height = universe_size_x;
 			std::vector<unsigned char> image;
 			image.resize(width * height * 4);
-			for (unsigned y = 0; y < height; y++)
-				for (unsigned x = 0; x < width; x++) {
-//					image[4 * width * y + 4 * x + 0] = 255 * !(x & y);
-//					image[4 * width * y + 4 * x + 1] = x ^ y;
-//					image[4 * width * y + 4 * x + 2] = x | y;
-					unsigned val = 0;
 
+			for (unsigned x = 0; x < height; x++) {
+				for (unsigned y = 0; y < width; y++) {
+					unsigned red = 0;
 					if (universe_serial[grid_modifier.get_vector_index(x, y, universe_size_y)] == ALIVE)
-						val = 255;
-
-					image[4 * width * y + 4 * x + 0] = val;
-					image[4 * width * y + 4 * x + 1] = 0;
-					image[4 * width * y + 4 * x + 2] = 0;
-					image[4 * width * y + 4 * x + 3] = 255;
+						red = 255;
+					image[4 * width * x + 4 * y + 0] = red;
+					image[4 * width * x + 4 * y + 1] = 0;
+					image[4 * width * x + 4 * y + 2] = 0;
+					image[4 * width * x + 4 * y + 3] = 255;
 				}
+			}
 
 			lodepng::encode(filename, image, width, height);
 		}
