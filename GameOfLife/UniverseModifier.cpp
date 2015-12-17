@@ -209,43 +209,6 @@ bool UniverseModifier::are_equal(const vector<bool>& first_universe, const vecto
 	return are_equal;
 }
 
-void UniverseModifier::advance_universe(vector<bool>& grid, size_t size_x, size_t size_y) {
-	
-	// TODO: Create & return a new universe, NOT edit the old
-	vector<bool> old_universe(grid);
-
-	for (size_t x = 0; x < size_x; ++x) {
-		for (size_t y = 0; y < size_y; ++y) {
-			grid[get_vector_index(x, y, size_y)] = get_new_state(get_neighborhood(x, y, DEFAULT_NEIGHBORHOOD_SIZE, old_universe, size_x, size_y));
-		}
-	}
-}
-
-void UniverseModifier::advance_universe_cell_tbb(size_t x, size_t y, const concurrent_vector<bool>& old_universe, concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
-	grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, old_universe, size_x, size_y));
-}
-
-
-void UniverseModifier::advance_universe_tbb(concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
-
-	concurrent_vector<bool, cache_aligned_allocator<bool>> old_universe(grid);
-	
-	// TODO: add stride 4, close to "simd like"?
-	parallel_for(blocked_range2d<size_t, size_t>(0, size_x, 0, size_y),
-		[&](const blocked_range2d<size_t, size_t>& r) {
-
-			size_t StartX = r.rows().begin();
-			size_t StopX = r.rows().end();
-			size_t StartY = r.cols().begin();
-			size_t StopY = r.cols().end();
-
-			for (size_t x = StartX; x < StopX; ++x)
-				for (size_t y = StartY; y < StopY; ++y)
-					advance_universe_cell_tbb(x, y, old_universe, grid, size_x, size_y);
-		}
-	);
-}
-
 concurrent_vector<bool> UniverseModifier::to_concurrent_vector(const vector<bool>& input_grid) {
 	concurrent_vector<bool, cache_aligned_allocator<bool>> returning_concurrent_vector(input_grid.size());
 
