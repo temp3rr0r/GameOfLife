@@ -3,6 +3,8 @@
 static const bool VERBOSE = false;
 static const bool SAVE_PNG = true;
 
+static const bool SAVE_ALL_PNG_STEPS = true;
+
 static const int DEFAULT_NUMBER_OF_THREADS = 4;
 
 static const int UNIVERSE_X_COUNT = 10;

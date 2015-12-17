@@ -4,6 +4,7 @@
 #include <tbb/cache_aligned_allocator.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/tbb.h>
+#include "lodepng.h"
 
 using namespace tbb;
 
@@ -15,6 +16,28 @@ void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, std::
 		for (size_t i = 0; i < live_cells_count; ++i)
 			grid[cell_distribution(mersenne_twister_engine)] = true;
 	}
+}
+
+void UniverseModifier::universe_to_png(const std::vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, const char* filename) const {
+	// Generate the image
+	uint32_t width = static_cast<uint32_t>(universe_size_y);
+	uint32_t height = static_cast<uint32_t>(universe_size_x);
+	std::vector<uint8_t> image;
+	image.resize(width * height * 4);
+
+	for (uint32_t x = 0; x < height; x++) {
+		for (uint32_t y = 0; y < width; y++) {
+			uint32_t red = 0;
+			if (universe[UniverseModifier::get_vector_index(static_cast<size_t>(x), static_cast<size_t>(y), universe_size_y)] == ALIVE)
+				red = 255;
+			image[4 * width * x + 4 * y + 0] = red;
+			image[4 * width * x + 4 * y + 1] = 0;
+			image[4 * width * x + 4 * y + 2] = 0;
+			image[4 * width * x + 4 * y + 3] = 255;
+		}
+	}
+
+	lodepng::encode(filename, image, width, height);
 }
 
 void UniverseModifier::debug_show_universe(const std::vector<bool>& universe, size_t size_x, size_t size_y) {
@@ -185,6 +208,8 @@ bool UniverseModifier::are_equal(const std::vector<bool>& first_universe, const 
 
 void UniverseModifier::advance_universe(std::vector<bool>& grid, size_t size_x, size_t size_y) {
 	
+	// TODO: Create & return a new universe, NOT edit the old
+
 	for (size_t x = 0; x < size_x; ++x) {
 		for (size_t y = 0; y < size_y; ++y) {
 			grid[get_vector_index(x, y, size_y)] = get_new_state(get_neighborhood(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));

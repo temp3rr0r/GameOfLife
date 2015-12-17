@@ -12,6 +12,7 @@
 #include "tbb/concurrent_vector.h"
 #include "UniverseModifier.h"
 #include <cassert>
+#include <string>
 
 using namespace tbb;
 using namespace std;
@@ -22,6 +23,12 @@ void simulate_serial(vector<bool>& universe, size_t universe_size_x, size_t univ
 
 	for (size_t i = 0; i < total_time_steps; ++i) {
 		universe_modifier.advance_universe(universe, universe_size_x, universe_size_y);
+		if (SAVE_ALL_PNG_STEPS) {
+
+			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
+
+			universe_modifier.universe_to_png(universe, universe_size_x, universe_size_y, file_name.c_str());
+		}
 	}
 }
 
@@ -31,6 +38,12 @@ void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, siz
 
 	for (size_t i = 0; i < total_time_steps; ++i) {
 		universe_modifier.advance_universe_tbb(universe, universe_size_x, universe_size_y);
+		if (SAVE_ALL_PNG_STEPS) {
+
+			string file_name = "universe_tbb_timestep_" + to_string(i) +".png";
+
+			universe_modifier.universe_to_png(universe_modifier.to_vector(universe), universe_size_x, universe_size_y, file_name.c_str());
+		}
 	}
 }
 
@@ -47,10 +60,10 @@ int main() {
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_y = 1920;
-	universe_size_x = 1080;
+	universe_size_y = 800;
+	universe_size_x = 600;
 	thread_count = 4;
-	total_time_steps = 10;
+	total_time_steps = 5;
 	live_cells_proportion = 0.6;
 	live_cells_count = static_cast<size_t>(universe_size_x * universe_size_y * live_cells_proportion);
 
@@ -111,31 +124,10 @@ int main() {
 		}
 
 		if (SAVE_PNG) {
-
-			// Write png to disk
-			const char* filename = "universe.png";
-
-			//generate some image
-			unsigned width = universe_size_y;
-			unsigned height = universe_size_x;
-			std::vector<unsigned char> image;
-			image.resize(width * height * 4);
-
-			for (unsigned x = 0; x < height; x++) {
-				for (unsigned y = 0; y < width; y++) {
-					unsigned red = 0;
-					if (universe_serial[grid_modifier.get_vector_index(x, y, universe_size_y)] == ALIVE)
-						red = 255;
-					image[4 * width * x + 4 * y + 0] = red;
-					image[4 * width * x + 4 * y + 1] = 0;
-					image[4 * width * x + 4 * y + 2] = 0;
-					image[4 * width * x + 4 * y + 3] = 255;
-				}
-			}
-
-			lodepng::encode(filename, image, width, height);
+			grid_modifier.universe_to_png(universe_serial, universe_size_x, universe_size_y, "final_serial_universe.png");
+			grid_modifier.universe_to_png(grid_modifier.to_vector(universe_tbb), universe_size_x, universe_size_y, "final_tbb_universe.png");
 		}
-
+		
 		system("pause");
 	}
 

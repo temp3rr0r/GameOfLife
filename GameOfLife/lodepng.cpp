@@ -721,12 +721,12 @@ static BPMNode* bpmnode_create(BPMLists* lists, int weight, unsigned index, BPMN
 
 static int bpmnode_compare(const void* a, const void* b)
 {
-	int wa = ((const BPMNode*)a)->weight;
-	int wb = ((const BPMNode*)b)->weight;
+	int wa = static_cast<const BPMNode*>(a)->weight;
+	int wb = static_cast<const BPMNode*>(b)->weight;
 	if (wa < wb) return -1;
 	if (wa > wb) return 1;
 	/*make the qsort a stable sort*/
-	return ((const BPMNode*)a)->index < ((const BPMNode*)b)->index ? 1 : -1;
+	return ((const BPMNode*)a)->index < static_cast<const BPMNode*>(b)->index ? 1 : -1;
 }
 
 /*Boundary Package Merge step, numpresent is the amount of leaves, and c is the current chain.*/
@@ -857,8 +857,8 @@ static unsigned HuffmanTree_makeFromFrequencies(HuffmanTree* tree, const unsigne
 	unsigned error = 0;
 	while (!frequencies[numcodes - 1] && numcodes > mincodes) --numcodes; /*trim zeroes*/
 	tree->maxbitlen = maxbitlen;
-	tree->numcodes = (unsigned)numcodes; /*number of symbols*/
-	tree->lengths = (unsigned*)lodepng_realloc(tree->lengths, numcodes * sizeof(unsigned));
+	tree->numcodes = static_cast<unsigned>(numcodes); /*number of symbols*/
+	tree->lengths = static_cast<unsigned*>(lodepng_realloc(tree->lengths, numcodes * sizeof(unsigned)));
 	if (!tree->lengths) return 83; /*alloc fail*/
 								   /*initialize all lengths to 0*/
 	memset(tree->lengths, 0, numcodes * sizeof(unsigned));
