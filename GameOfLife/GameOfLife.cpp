@@ -13,11 +13,89 @@
 #include "UniverseModifier.h"
 #include <cassert>
 #include <string>
+#include <tbb/parallel_for.h>
 
 using namespace tbb;
 using namespace std;
 
+inline uint8_t count_alive_cells(size_t x0, size_t x1, size_t x2, size_t y0, size_t y1, size_t y2, const vector<bool>& universe) {
+	return universe[x0 + y0] + universe[x1 + y0] + universe[x2 + y0]
+		+ universe[x0 + y1] + universe[x2 + y1]
+		+ universe[x0 + y2] + universe[x1 + y2] + universe[x2 + y2];
+}
+
+inline uint8_t count_alive_cells_tbb(size_t x0, size_t x1, size_t x2, size_t y0, size_t y1, size_t y2, const concurrent_vector<bool>& universe) {
+	return universe[x0 + y0] + universe[x1 + y0] + universe[x2 + y0]
+		+ universe[x0 + y1] + universe[x2 + y1]
+		+ universe[x0 + y2] + universe[x1 + y2] + universe[x2 + y2];
+}
+
+void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
+	size_t data_length = universe.size();
+	concurrent_vector<bool, cache_aligned_allocator<bool>> new_universe(data_length);
+	
+	UniverseModifier universe_modifier;
+
+	for (size_t i = 0; i < total_time_steps; ++i) {
+		
+		parallel_for(blocked_range<size_t>(0, data_length),
+			[&](const blocked_range<size_t>& r) {
+				for (size_t index = r.begin(); index < r.end(); ++index) {
+					size_t x1 = index % universe_size_y;
+					size_t y1 = index - x1;
+					size_t y0 = (y1 + data_length - universe_size_y) % universe.size();
+					size_t y2 = (y1 + universe_size_y) % data_length;
+					size_t x0 = (x1 + universe_size_y - 1) % universe_size_y;
+					size_t x2 = (x1 + 1) % universe_size_y;
+
+					uint8_t aliveCells = count_alive_cells_tbb(x0, x1, x2, y0, y1, y2, universe);
+					new_universe[y1 + x1] =
+						aliveCells == REPRODUCTION_COUNT || (aliveCells == UNDERPOPULATION_COUNT && universe[x1 + y1]) ? true : false;
+				}
+			}
+		);
+
+		std::swap(universe, new_universe);
+		if (SAVE_ALL_PNG_STEPS) {
+
+			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
+
+			universe_modifier.universe_to_png(universe_modifier.to_vector(universe), universe_size_x, universe_size_y, file_name.c_str());
+		}
+	}
+}
+
 void simulate_serial(vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
+
+	vector<bool> new_universe(universe.size());
+	UniverseModifier universe_modifier;
+
+	for (size_t i = 0; i < total_time_steps; ++i) {
+		for (size_t y = 0; y < universe_size_x; ++y) {
+			size_t y0 = ((y + universe_size_x - 1) % universe_size_x) * universe_size_y;
+			size_t y1 = y * universe_size_y;
+			size_t y2 = ((y + 1) % universe_size_x) * universe_size_y;
+
+			for (size_t x = 0; x < universe_size_y; ++x) {
+				size_t x0 = (x + universe_size_y - 1) % universe_size_y;
+				size_t x2 = (x + 1) % universe_size_y;
+
+				uint8_t aliveCells = count_alive_cells(x0, x, x2, y0, y1, y2, universe);
+				new_universe[y1 + x] =
+					aliveCells == 3 || (aliveCells == 2 && universe[x + y1]) ? 1 : 0;
+			}
+		}
+		std::swap(universe, new_universe);
+		if (SAVE_ALL_PNG_STEPS) {
+
+			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
+
+			universe_modifier.universe_to_png(universe, universe_size_x, universe_size_y, file_name.c_str());
+		}
+	}
+}
+
+void simulate_serial_old(vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
 
 	UniverseModifier universe_modifier;
 
@@ -32,7 +110,7 @@ void simulate_serial(vector<bool>& universe, size_t universe_size_x, size_t univ
 	}
 }
 
-void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
+void simulate_tbb_old(concurrent_vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
 
 	UniverseModifier universe_modifier;
 
@@ -60,8 +138,8 @@ int main() {
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_y = 1600;
-	universe_size_x = 1200;
+	universe_size_y = 4000;
+	universe_size_x = 2000;
 	thread_count = 4;
 	total_time_steps = 5;
 	live_cells_proportion = 0.6;
