@@ -60,8 +60,8 @@ int main() {
 	//task_scheduler_init init(task_scheduler_init::automatic);
 
 	// User input data
-	universe_size_y = 800;
-	universe_size_x = 600;
+	universe_size_y = 1600;
+	universe_size_x = 1200;
 	thread_count = 4;
 	total_time_steps = 5;
 	live_cells_proportion = 0.6;

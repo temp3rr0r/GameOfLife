@@ -7,22 +7,23 @@
 #include "lodepng.h"
 
 using namespace tbb;
+using namespace std;
 
-void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, std::vector<bool>& grid, size_t size_x, size_t size_y) {
+void UniverseModifier::allocate_random_live_cells(size_t live_cells_count, vector<bool>& grid, size_t size_x, size_t size_y) {
 	if (live_cells_count > 0) {
-		std::mt19937 mersenne_twister_engine(random_device_());
-		std::uniform_int_distribution<> cell_distribution(0, static_cast<int>((size_x * size_y) - 1));
+		mt19937 mersenne_twister_engine(random_device_());
+		uniform_int_distribution<> cell_distribution(0, static_cast<int>((size_x * size_y) - 1));
 
 		for (size_t i = 0; i < live_cells_count; ++i)
 			grid[cell_distribution(mersenne_twister_engine)] = true;
 	}
 }
 
-void UniverseModifier::universe_to_png(const std::vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, const char* filename) const {
+void UniverseModifier::universe_to_png(const vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, const char* filename) const {
 	// Generate the image
 	uint32_t width = static_cast<uint32_t>(universe_size_y);
 	uint32_t height = static_cast<uint32_t>(universe_size_x);
-	std::vector<uint8_t> image;
+	vector<uint8_t> image;
 	image.resize(width * height * 4);
 
 	for (uint32_t x = 0; x < height; x++) {
@@ -40,15 +41,15 @@ void UniverseModifier::universe_to_png(const std::vector<bool>& universe, size_t
 	lodepng::encode(filename, image, width, height);
 }
 
-void UniverseModifier::debug_show_universe(const std::vector<bool>& universe, size_t size_x, size_t size_y) {
+void UniverseModifier::debug_show_universe(const vector<bool>& universe, size_t size_x, size_t size_y) {
 
-	std::cout << "Universe:" << std::endl;
+	cout << "Universe:" << endl;
 
 	for (size_t x = 0; x < size_x; ++x) {
 		for (size_t y = 0; y < size_y; ++y) {
-			std::cout << static_cast<int>(universe[get_vector_index(x, y, size_y)]) << "\t";
+			cout << static_cast<int>(universe[get_vector_index(x, y, size_y)]) << "\t";
 		}
-		std::cout << std::endl;
+		cout << endl;
 	}
 }
 
@@ -56,7 +57,7 @@ size_t UniverseModifier::get_vector_index(size_t x, size_t y, size_t cell_count)
 	return (x * cell_count) + y;
 }
 
-size_t UniverseModifier::get_count(const std::vector<bool>& input_vector, bool state) {
+size_t UniverseModifier::get_count(const vector<bool>& input_vector, bool state) {
 	size_t returning_count = 0;
 	for (const bool &arrayElement : input_vector) {
 		if (arrayElement == state)
@@ -66,7 +67,7 @@ size_t UniverseModifier::get_count(const std::vector<bool>& input_vector, bool s
 }
 
 
-size_t UniverseModifier::get_count_tbb(const tbb::concurrent_vector<bool>& input_vector, bool state) {
+size_t UniverseModifier::get_count_tbb(const concurrent_vector<bool>& input_vector, bool state) {
 	size_t returning_count = 0;
 	for (const bool &arrayElement : input_vector) {
 		if (arrayElement == state)
@@ -75,8 +76,8 @@ size_t UniverseModifier::get_count_tbb(const tbb::concurrent_vector<bool>& input
 	return returning_count;
 }
 
-tbb::concurrent_vector<bool> UniverseModifier::get_neighborhood_tbb(size_t input_cell_x, size_t input_cell_y, size_t neighborhood_size, const tbb::concurrent_vector<bool>& universe, size_t size_x, size_t size_y) const {
-	tbb::concurrent_vector<bool, tbb::cache_aligned_allocator<bool>> returning_neighbourhood;
+concurrent_vector<bool> UniverseModifier::get_neighborhood_tbb(size_t input_cell_x, size_t input_cell_y, size_t neighborhood_size, const concurrent_vector<bool>& universe, size_t size_x, size_t size_y) const {
+	concurrent_vector<bool, cache_aligned_allocator<bool>> returning_neighbourhood;
 	returning_neighbourhood.resize(neighborhood_size);
 
 	size_t neighbourhood_side_size_y = static_cast<size_t>(sqrt(neighborhood_size));
@@ -110,8 +111,8 @@ tbb::concurrent_vector<bool> UniverseModifier::get_neighborhood_tbb(size_t input
 	return returning_neighbourhood;
 }
 
-std::vector<bool> UniverseModifier::get_neighborhood(size_t input_cell_x, size_t input_cell_y, size_t neighborhood_size, const std::vector<bool>& universe, size_t size_x, size_t size_y) {
-	std::vector<bool> returning_neighbourhood;
+vector<bool> UniverseModifier::get_neighborhood(size_t input_cell_x, size_t input_cell_y, size_t neighborhood_size, const vector<bool>& universe, size_t size_x, size_t size_y) {
+	vector<bool> returning_neighbourhood;
 	returning_neighbourhood.resize(neighborhood_size);
 
 	size_t neighbourhood_side_size_y = static_cast<size_t>(sqrt(neighborhood_size));
@@ -146,7 +147,7 @@ std::vector<bool> UniverseModifier::get_neighborhood(size_t input_cell_x, size_t
 }
 
 
-bool UniverseModifier::get_new_state_tbb(const tbb::concurrent_vector<bool>& input_current_neighbourhood) {
+bool UniverseModifier::get_new_state_tbb(const concurrent_vector<bool>& input_current_neighbourhood) {
 
 	bool current_state = input_current_neighbourhood[(input_current_neighbourhood.size() / 2)];
 	bool returning_state = DEAD;
@@ -170,7 +171,7 @@ bool UniverseModifier::get_new_state_tbb(const tbb::concurrent_vector<bool>& inp
 	return returning_state;
 }
 
-bool UniverseModifier::get_new_state(const std::vector<bool>& input_current_neighbourhood) {
+bool UniverseModifier::get_new_state(const vector<bool>& input_current_neighbourhood) {
 	
 	bool current_state = input_current_neighbourhood[(input_current_neighbourhood.size() / 2)];
 	bool returning_state = DEAD;
@@ -193,7 +194,7 @@ bool UniverseModifier::get_new_state(const std::vector<bool>& input_current_neig
 	return returning_state;
 }
 
-bool UniverseModifier::are_equal(const std::vector<bool>& first_universe, const std::vector<bool>& second_universe) {
+bool UniverseModifier::are_equal(const vector<bool>& first_universe, const vector<bool>& second_universe) {
 	bool are_equal = false;
 
 	if (first_universe.size() > 0 && first_universe.size() == second_universe.size()) {
@@ -206,24 +207,28 @@ bool UniverseModifier::are_equal(const std::vector<bool>& first_universe, const 
 	return are_equal;
 }
 
-void UniverseModifier::advance_universe(std::vector<bool>& grid, size_t size_x, size_t size_y) {
+void UniverseModifier::advance_universe(vector<bool>& grid, size_t size_x, size_t size_y) {
 	
 	// TODO: Create & return a new universe, NOT edit the old
+	vector<bool> old_universe(grid);
 
 	for (size_t x = 0; x < size_x; ++x) {
 		for (size_t y = 0; y < size_y; ++y) {
-			grid[get_vector_index(x, y, size_y)] = get_new_state(get_neighborhood(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
+			grid[get_vector_index(x, y, size_y)] = get_new_state(get_neighborhood(x, y, DEFAULT_NEIGHBORHOOD_SIZE, old_universe, size_x, size_y));
 		}
 	}
 }
 
-void UniverseModifier::advance_universe_cell_tbb(size_t x, size_t y, tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
-	grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, grid, size_x, size_y));
+void UniverseModifier::advance_universe_cell_tbb(size_t x, size_t y, const concurrent_vector<bool>& old_universe, concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
+	grid[get_vector_index(x, y, size_y)] = get_new_state_tbb(get_neighborhood_tbb(x, y, DEFAULT_NEIGHBORHOOD_SIZE, old_universe, size_x, size_y));
 }
 
 
-void UniverseModifier::advance_universe_tbb(tbb::concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
+void UniverseModifier::advance_universe_tbb(concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const {
+
+	concurrent_vector<bool, cache_aligned_allocator<bool>> old_universe(grid);
 	
+	// TODO: add stride 4, close to "simd like"?
 	parallel_for(blocked_range2d<size_t, size_t>(0, size_x, 0, size_y),
 		[&](const blocked_range2d<size_t, size_t>& r) {
 
@@ -234,13 +239,13 @@ void UniverseModifier::advance_universe_tbb(tbb::concurrent_vector<bool>& grid, 
 
 			for (size_t x = StartX; x < StopX; ++x)
 				for (size_t y = StartY; y < StopY; ++y)
-					advance_universe_cell_tbb(x, y, grid, size_x, size_y);
+					advance_universe_cell_tbb(x, y, old_universe, grid, size_x, size_y);
 		}
 	);
 }
 
-tbb::concurrent_vector<bool> UniverseModifier::to_concurrent_vector(const std::vector<bool>& input_grid) {
-	tbb::concurrent_vector<bool, tbb::cache_aligned_allocator<bool>> returning_concurrent_vector(input_grid.size());
+concurrent_vector<bool> UniverseModifier::to_concurrent_vector(const vector<bool>& input_grid) {
+	concurrent_vector<bool, cache_aligned_allocator<bool>> returning_concurrent_vector(input_grid.size());
 
 	for (size_t i = 0; i < input_grid.size(); ++i)
 		returning_concurrent_vector[i] = input_grid[i];
@@ -249,8 +254,8 @@ tbb::concurrent_vector<bool> UniverseModifier::to_concurrent_vector(const std::v
 }
 
 
-std::vector<bool> UniverseModifier::to_vector(const tbb::concurrent_vector<bool>& input_grid) {
-	std::vector<bool> returning_vector(input_grid.size());
+vector<bool> UniverseModifier::to_vector(const concurrent_vector<bool>& input_grid) {
+	vector<bool> returning_vector(input_grid.size());
 
 	for (size_t i = 0; i < input_grid.size(); ++i)
 		returning_vector[i] = input_grid[i];
