@@ -31,26 +31,32 @@ inline uint8_t count_alive_cells_tbb(size_t x0, size_t x1, size_t x2, size_t y0,
 }
 
 void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, size_t total_time_steps) {
-	size_t data_length = universe.size();
-	concurrent_vector<bool, cache_aligned_allocator<bool>> new_universe(data_length);
 	
-	UniverseModifier universe_modifier;
+	const size_t universe_size_local = universe.size();
+	const size_t universe_size_y_local = universe_size_y;
+	concurrent_vector<bool, cache_aligned_allocator<bool>> new_universe(universe_size_local);
 
-	for (size_t i = 0; i < total_time_steps; ++i) {
-		
-		parallel_for(blocked_range<size_t>(0, data_length),
+	for (size_t i = 0; i < total_time_steps; ++i) {		
+		parallel_for(blocked_range<size_t>(0, universe_size_local),
 			[&](const blocked_range<size_t>& r) {
-				for (size_t index = r.begin(); index < r.end(); ++index) {
-					size_t x1 = index % universe_size_y;
-					size_t y1 = index - x1;
-					size_t y0 = (y1 + data_length - universe_size_y) % universe.size();
-					size_t y2 = (y1 + universe_size_y) % data_length;
-					size_t x0 = (x1 + universe_size_y - 1) % universe_size_y;
-					size_t x2 = (x1 + 1) % universe_size_y;
 
-					uint8_t aliveCells = count_alive_cells_tbb(x0, x1, x2, y0, y1, y2, universe);
+				const size_t begin = r.begin();
+				const size_t end = r.end();				
+
+				for (size_t index = begin; index != end; ++index) {
+					size_t x1 = index % universe_size_y_local;
+					size_t y1 = index - x1;
+
+					uint8_t aliveCells = count_alive_cells_tbb(
+						(x1 + universe_size_y_local - 1) % universe_size_y_local, // x0,
+						x1,
+						(x1 + 1) % universe_size_y_local, //x2
+						(y1 + universe_size_local - universe_size_y_local) % universe_size_local, // y0
+						y1,
+						(y1 + universe_size_y_local) % universe_size_local, // y2
+						universe);
 					new_universe[y1 + x1] =
-						aliveCells == REPRODUCTION_COUNT || (aliveCells == UNDERPOPULATION_COUNT && universe[x1 + y1]) ? ALIVE : DEAD;
+						aliveCells == REPRODUCTION_COUNT || (aliveCells == UNDERPOPULATION_COUNT && universe[x1 + y1]);
 				}
 			}
 		);
@@ -59,7 +65,7 @@ void simulate_tbb(concurrent_vector<bool>& universe, size_t universe_size_x, siz
 		if (SAVE_ALL_PNG_STEPS) {
 
 			string file_name = "universe_serial_timestep_" + to_string(i) + ".png";
-
+			UniverseModifier universe_modifier;
 			universe_modifier.universe_to_png(universe_modifier.to_vector(universe), universe_size_x, universe_size_y, file_name.c_str());
 		}
 	}
@@ -101,7 +107,7 @@ int main() {
 	size_t universe_size_y = UNIVERSE_Y_COUNT;
 	size_t total_time_steps = DEFAULT_TOTAL_TIME_STEPS;
 	size_t live_cells_count = DEFAULT_INIT_LIVE_CELLS;
-	double live_cells_proportion = DEFAULT_INIT_LIVE_CELLS_PROPORTION;
+	float live_cells_proportion = DEFAULT_INIT_LIVE_CELLS_PROPORTION;
 	size_t neighborhood_size = DEFAULT_NEIGHBORHOOD_SIZE;
 
 	// Set TBB thread count system automatic (usually as many as the system's cores)
@@ -111,7 +117,7 @@ int main() {
 	universe_size_y = 4000;
 	universe_size_x = 2000;
 	thread_count = 4;
-	total_time_steps = 5;
+	total_time_steps = 10;
 	live_cells_proportion = 0.6;
 	live_cells_count = static_cast<size_t>(universe_size_x * universe_size_y * live_cells_proportion);
 

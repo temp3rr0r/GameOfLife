@@ -11,10 +11,7 @@ class UniverseModifier
 public:
 	UniverseModifier() {};
 	void allocate_random_live_cells(size_t live_cells_count, vector<bool>& input_universe, size_t size_x, size_t size_y);
-	void universe_to_png(const vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, const char* filename) const;
-	static void advance_universe(vector<bool>& universe, size_t size_x, size_t size_y);
-	void advance_universe_cell_tbb(size_t x, size_t y, const concurrent_vector<bool>& old_universe, concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const;
-	void advance_universe_tbb(concurrent_vector<bool>& grid, size_t size_x, size_t size_y) const;
+	void universe_to_png(const vector<bool>& universe, size_t universe_size_x, size_t universe_size_y, const char* filename) const;	
 	static concurrent_vector<bool> to_concurrent_vector(const vector<bool>& input_grid);
 	static vector<bool> to_vector(const concurrent_vector<bool>& input_grid);
 	static void debug_show_universe(const vector<bool>& universe, size_t size_x, size_t size_y);
