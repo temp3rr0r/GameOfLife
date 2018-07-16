@@ -1,4 +1,4 @@
-# README #
+# Game Of Life #
 
 A simple Cellular automata simulator of the game of life. Implemented version: Serial, Parallel(Intel Thread Building Blocks). Output in png format.
 
